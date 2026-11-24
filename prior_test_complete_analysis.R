@@ -139,8 +139,8 @@ use_original_prior <- function() {
 run_bmcmc <- function(i) {
   run <- runs[i, ]
   file <- file.path(runs_dir, run$output_file)
-  # a run that is already saved is not run again
-  if (file.exists(file)) {
+  # a complete run that is already saved is not run again
+  if (file.exists(file) && length(readRDS(file)$k) == n_samples) {
     cat(run$output_file, "is already saved\n")
     return(invisible(file))
   }
@@ -184,12 +184,12 @@ step_sizes <- c(0.2, 0.25, 0.35, 0.35, 0.8, 0.85, 0.6, 0.35, 0.9, 0.35, 0.9) / 2
 # One run with the authors' method (one line of authors_runs.csv) ####
 # TimeOptMCMC checks before it starts that the shortest astronomical period stays resolved at k = kAve - 2 kSd. When
 # kAve - 2 kSd is zero or negative (Dales Gorge at -2 SD: 45 - 2 x 25 < 0), this check cannot be made and
-# timeOptMCMC() stops; such a run is not made and is reported as missing in Table S2.
+# timeOptMCMC() stops; such a run is not made, and the pull in Table S2 is computed from the runs at 0 and +2 SD.
 run_authors <- function(i) {
   run <- authors_runs[i, ]
   file <- file.path(authors_dir, run$output_file)
-  # a run that is already saved is not run again
-  if (file.exists(file)) {
+  # a complete run that is already saved is not run again
+  if (file.exists(file) && length(readRDS(file)$k) == run$n_samples) {
     cat(run$output_file, "is already saved\n")
     return(invisible(file))
   }
@@ -313,8 +313,8 @@ write.csv(synthetic_runs, file.path(results_dir, "synthetic_runs.csv"), row.name
 run_synthetic <- function(i) {
   run <- synthetic_runs[i, ]
   file <- file.path(synthetic_dir, run$output_file)
-  # a run that is already saved is not run again
-  if (file.exists(file)) {
+  # a complete run that is already saved is not run again
+  if (file.exists(file) && length(readRDS(file)$k) == n_samples) {
     cat(run$output_file, "is already saved\n")
     return(invisible(file))
   }
@@ -336,7 +336,7 @@ run_synthetic <- function(i) {
   invisible(file)
 }
 
-# Option: all 722 runs at once on a multicore computer (switched off) ####
+# Option: all 721 runs at once on a multicore computer (switched off) ####
 # Instead of one core, the runs of Parts 1, 5 and 6 can be spread over several cores of one computer. This is switched
 # off: to use it, remove the # at the start of the lines below (not of this explanation). Because a saved run is not
 # run again, the run_record(), run_authors_record() and run_synthetic() lines of Parts 1, 5 and 6 then only report
@@ -349,7 +349,7 @@ run_synthetic <- function(i) {
 # library(foreach)
 # library(doParallel)
 # n_cores <- 4
-# warning("All 722 runs are started on ", n_cores, " cores. The computer may become slow or freeze while other ",
+# warning("All 721 runs are started on ", n_cores, " cores. The computer may become slow or freeze while other ",
 #         "large programs are open, and it can run out of memory. Close other programs before you continue.")
 # cl <- makeCluster(n_cores, type = "PSOCK")
 # registerDoParallel(cl)
@@ -1387,8 +1387,8 @@ for (device in c("png", "tiff")) {
          pch = c(16, 17, 15, NA, NA, NA, NA), lty = c(NA, NA, NA, 1, 2, 4, NA),
          col = c(method_colour[c("TimeOptB", "TimeOptMCMC", "TimeOptBMCMC")], "black", "grey45", "grey40", NA),
          lwd = c(NA, NA, NA, 1.6, 1, 1, NA),
-         legend = c("TimeOptB", "TimeOptMCMC", "TimeOptBMCMC", "Farhat et al. (2022) solution and envelope",
-                    "TimeOptB prior and 2 sd band", "Present-day k", ""))
+         legend = c("TimeOptB", "TimeOptMCMC", "TimeOptBMCMC", "Farhat et al. (2022a) solution and envelope",
+                    "TimeOptB prior and 2 SD band", "Present-day k", ""))
   dev.off()
 }
 
@@ -1450,10 +1450,10 @@ matrix_legend <- function(cex) {
          lty = c(NA, NA, NA, NA, NA, NA, NA, NA, 3, 5, NA, NA, NA, NA, NA),
          col = c(rep("grey40", 5), "black", "#C0392B", "grey25", "grey20", "#1E8449", "grey80", "#239B56", "#E67E22",
                  "#F5B041", "#C0392B"),
-         legend = c("Density of one run: within 2x of its maximum", "10x less", "100x less", "1000x less",
-                    "10^4x less", "Posterior mean of the run", "Published k (left edge)",
+         legend = c("Density of one run: within 2x of its maximum", "10x less", "100x less", "1,000x less",
+                    "10,000x less", "Posterior mean of the run", "Published k (left edge)",
                     paste("Run with a wide prior, mean", pm, "1 SD (right edge)"), "Posterior = prior mean (1:1 line)",
-                    "Farhat et al. (2022) value at that age", "Below the geological floor",
+                    "Farhat et al. (2022a) value at that age", "Below the geological floor",
                     "\u2713 D: set by the data (w: weak)", "\u2713 O: a stated observation picks the solution",
                     "~ M: a solution at the model value (an observation is needed)",
                     "\u2717 P: prior in, prior out; X: no plausible answer"))
@@ -1562,7 +1562,7 @@ for (device in c("png", "tiff")) {
                     paste("Posterior mean", pm, "1 SD of that run"),
                     paste("Run with a wide prior (5 SD): mean", pm, "1 SD"),
                     "Published k (left edge)", "Posterior = prior mean (1:1 line)",
-                    "Farhat et al. (2022) value at that age", "Below the geological floor (samples dropped)"))
+                    "Farhat et al. (2022a) value at that age", "Below the geological floor (samples dropped)"))
   mtext(paste("x: prior mean of k (arcsec/yr), nine TimeOptBMCMC runs at -2 to +2 SD;  y: posterior of k (arcsec/yr);",
               "same scale on both axes"), side = 3, line = -0.9, cex = 0.6)
   dev.off()
@@ -1619,7 +1619,7 @@ for (device in c("png", "tiff")) {
          legend = c("Set by the data: published with TimeOptB", "Set by the data: published with TimeOptMCMC",
                     "Orange: set by an observation (Hakatai, Dales Gorge; open: weak)",
                     "Solution at the model value, not picked by the data (M; not in the curve)", "Open: weak reading",
-                    "Published value (joined to the value of the runs)", "Farhat et al. (2022), with envelope",
+                    "Published value (joined to the value of the runs)", "Farhat et al. (2022a), with envelope",
                     "This study: k(t) from these estimates (median, 95%; weak ones penalised)",
                     "Same, strong readings only (dotted: 95%)", "TimeOptB prior, 2 SD"))
   dev.off()
@@ -1649,7 +1649,7 @@ for (device in c("png", "tiff")) {
        cex = 0.7)
   legend("topleft", bty = "n", cex = 0.75, lty = c(1, 1, 2, NA), pch = c(NA, NA, NA, 16),
          lwd = c(1.4, 1.6, 1.4, NA), col = c("black", "#D35400", "#D35400", colour_data),
-         legend = c("Farhat et al. (2022), AstroGeo22, with envelope", "This study: monotone k(t), median and 95%",
+         legend = c("Farhat et al. (2022a, 2022b), AstroGeo22, with envelope", "This study: monotone k(t), median and 95%",
                     paste0("Beyond the oldest estimate (", oldest, " Ma): extrapolation"),
                     paste("Estimates set by the data (", pm, " 1 SD)", sep = "")))
   dev.off()

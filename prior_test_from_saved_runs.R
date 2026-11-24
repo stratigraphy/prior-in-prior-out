@@ -82,9 +82,14 @@ for (case in c("long", "short")) {
   }
 }
 
-# Check that the saved runs are present ####
+# Check that the saved runs are present and complete ####
 missing <- runs$output_file[!file.exists(file.path(runs_dir, runs$output_file))]
 cat(length(missing), "of", nrow(runs), "runs of the prior test missing in", runs_dir, "\n")
+present_pt <- runs$output_file[file.exists(file.path(runs_dir, runs$output_file))]
+short_pt <- present_pt[sapply(present_pt, function(f) length(readRDS(file.path(runs_dir, f))$k) != 50000)]
+if (length(short_pt) > 0) {
+  warning(length(short_pt), " saved prior-test runs do not have 50,000 samples: ", paste(short_pt, collapse = ", "))
+}
 missing <- authors_runs$output_file[!file.exists(file.path(authors_dir, authors_runs$output_file))]
 cat(length(missing), "of", nrow(authors_runs), "runs with the authors' methods missing in", authors_dir, ":",
     missing, "\n")
@@ -875,8 +880,8 @@ for (device in c("png", "tiff")) {
          pch = c(16, 17, 15, NA, NA, NA, NA), lty = c(NA, NA, NA, 1, 2, 4, NA),
          col = c(method_colour[c("TimeOptB", "TimeOptMCMC", "TimeOptBMCMC")], "black", "grey45", "grey40", NA),
          lwd = c(NA, NA, NA, 1.6, 1, 1, NA),
-         legend = c("TimeOptB", "TimeOptMCMC", "TimeOptBMCMC", "Farhat et al. (2022) solution and envelope",
-                    "TimeOptB prior and 2 sd band", "Present-day k", ""))
+         legend = c("TimeOptB", "TimeOptMCMC", "TimeOptBMCMC", "Farhat et al. (2022a) solution and envelope",
+                    "TimeOptB prior and 2 SD band", "Present-day k", ""))
   dev.off()
 }
 
@@ -938,10 +943,10 @@ matrix_legend <- function(cex) {
          lty = c(NA, NA, NA, NA, NA, NA, NA, NA, 3, 5, NA, NA, NA, NA, NA),
          col = c(rep("grey40", 5), "black", "#C0392B", "grey25", "grey20", "#1E8449", "grey80", "#239B56", "#E67E22",
                  "#F5B041", "#C0392B"),
-         legend = c("Density of one run: within 2x of its maximum", "10x less", "100x less", "1000x less",
-                    "10^4x less", "Posterior mean of the run", "Published k (left edge)",
+         legend = c("Density of one run: within 2x of its maximum", "10x less", "100x less", "1,000x less",
+                    "10,000x less", "Posterior mean of the run", "Published k (left edge)",
                     paste("Run with a wide prior, mean", pm, "1 SD (right edge)"), "Posterior = prior mean (1:1 line)",
-                    "Farhat et al. (2022) value at that age", "Below the geological floor",
+                    "Farhat et al. (2022a) value at that age", "Below the geological floor",
                     "\u2713 D: set by the data (w: weak)", "\u2713 O: a stated observation picks the solution",
                     "~ M: a solution at the model value (an observation is needed)",
                     "\u2717 P: prior in, prior out; X: no plausible answer"))
@@ -1050,7 +1055,7 @@ for (device in c("png", "tiff")) {
                     paste("Posterior mean", pm, "1 SD of that run"),
                     paste("Run with a wide prior (5 SD): mean", pm, "1 SD"),
                     "Published k (left edge)", "Posterior = prior mean (1:1 line)",
-                    "Farhat et al. (2022) value at that age", "Below the geological floor (samples dropped)"))
+                    "Farhat et al. (2022a) value at that age", "Below the geological floor (samples dropped)"))
   mtext(paste("x: prior mean of k (arcsec/yr), nine TimeOptBMCMC runs at -2 to +2 SD;  y: posterior of k (arcsec/yr);",
               "same scale on both axes"), side = 3, line = -0.9, cex = 0.6)
   dev.off()
@@ -1107,7 +1112,7 @@ for (device in c("png", "tiff")) {
          legend = c("Set by the data: published with TimeOptB", "Set by the data: published with TimeOptMCMC",
                     "Orange: set by an observation (Hakatai, Dales Gorge; open: weak)",
                     "Solution at the model value, not picked by the data (M; not in the curve)", "Open: weak reading",
-                    "Published value (joined to the value of the runs)", "Farhat et al. (2022), with envelope",
+                    "Published value (joined to the value of the runs)", "Farhat et al. (2022a), with envelope",
                     "This study: k(t) from these estimates (median, 95%; weak ones penalised)",
                     "Same, strong readings only (dotted: 95%)", "TimeOptB prior, 2 SD"))
   dev.off()
@@ -1137,7 +1142,7 @@ for (device in c("png", "tiff")) {
        cex = 0.7)
   legend("topleft", bty = "n", cex = 0.75, lty = c(1, 1, 2, NA), pch = c(NA, NA, NA, 16),
          lwd = c(1.4, 1.6, 1.4, NA), col = c("black", "#D35400", "#D35400", colour_data),
-         legend = c("Farhat et al. (2022), AstroGeo22, with envelope", "This study: monotone k(t), median and 95%",
+         legend = c("Farhat et al. (2022a, 2022b), AstroGeo22, with envelope", "This study: monotone k(t), median and 95%",
                     paste0("Beyond the oldest estimate (", oldest, " Ma): extrapolation"),
                     paste("Estimates set by the data (", pm, " 1 SD)", sep = "")))
   dev.off()

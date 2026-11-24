@@ -9,16 +9,18 @@ R code and inputs of the re-analysis of 56 published cyclostratigraphic estimate
 
 ## How to run
 
-1. Install R with the packages **astrochron** and **WaverideR** (0.6.0 or later, for `modBchron()`).
+1. Install R with the packages **astrochron** (1.5 or later, for `timeOptBMCMC()`) and **WaverideR** (0.6.0 or later,
+   for `modBchron()`).
 2. Open `prior_test.Rproj` in RStudio. This makes this folder the working folder.
 3. Open one of the two scripts and source it, or run it part by part:
    - `prior_test_from_saved_runs.R` gives every table and figure from the saved runs. Only the curve of *k* against
      age (Bchron, about 7 minutes per curve) is run again. Put the saved runs from the Zenodo record of the runs in
      `output/saved_results/` first (see below).
-   - `prior_test_complete_analysis.R` makes all 722 runs and every number, table and figure. The runs are made one
-     after another on one core; the 560 runs of the prior test take about four weeks. Every run is saved as soon as it
-     is finished, and a saved run is not run again, so the script can be stopped and started again. An option to make
-     the runs on several cores is included but switched off.
+   - `prior_test_complete_analysis.R` makes all 721 runs (560 of the prior test, 65 with the authors' methods and 96 of
+     the synthetic test) and every number, table and figure. The runs are made one after another on one core; the 560
+     runs of the prior test take about four weeks. Every run is saved as soon as it is finished, and a complete saved
+     run is not run again, so the script can be stopped and started again. An option to make the runs on several cores
+     is included but switched off.
 
 The seven parts of the complete script:
 
@@ -28,7 +30,7 @@ The seven parts of the complete script:
 | 2 | The readings (set by the data, prior in prior out, no plausible answer, solution at the model value, set by an observation) |
 | 3 | Table 1 and Table S1 |
 | 4 | The curve of *k* against age (Bchron, `modBchron()` of WaverideR) |
-| 5 | The authors' own methods with their own priors: 66 runs, and Table S2 |
+| 5 | The authors' own methods with their own priors: 65 runs (Dales Gorge at −2 SD cannot start), and Table S2 |
 | 6 | The synthetic test: 24 synthetic records, 96 runs, and Figure S2 |
 | 7 | Figures 1 to 3, S1, S3 and S4 |
 
