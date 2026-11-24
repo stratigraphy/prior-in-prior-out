@@ -6,6 +6,7 @@ authors:
     given-names: Michiel
     affiliation: "SediClim, Department of Geology, University of Liège, Belgium"
 license: GPL-3.0
+doi: 10.5281/zenodo.24508760
 repository-code: "https://github.com/stratigraphy/prior-in-prior-out"
 keywords:
   - cyclostratigraphy

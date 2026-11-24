@@ -1,5 +1,7 @@
 # Prior in, prior out
 
+[![DOI](https://zenodo.org/badge/1470449640.svg)](https://doi.org/10.5281/zenodo.24508760)
+
 R code and inputs of the re-analysis of 56 published cyclostratigraphic estimates of Earth's precession constant *k*:
 
 > Arts, M. (submitted). Prior in, prior out: a re-analysis of 56 cyclostratigraphic estimates of Earth's precession
@@ -40,7 +42,7 @@ The seven parts of the complete script:
 | `output/saved_results/` | All results: the saved runs (`runs_prior_test/`, `runs_authors/`, `runs_synthetic/`), the readings, the curves of *k* against age and the Bchron models (RDS and CSV) |
 
 The saved runs (about 300 MB) are not in this repository; they are archived in a separate Zenodo record
-[DOI to be added]. Unzip that record into `output/saved_results/`.
+(https://doi.org/10.5281/zenodo.24509195). Unzip that record into `output/saved_results/`.
 
 ## Data
 
