@@ -1,0 +1,11 @@
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+output/saved_results/*
+!output/saved_results/.gitkeep
+output/figures/*
+!output/figures/.gitkeep
+output/tables/*
+!output/tables/.gitkeep
+data/synthetic/

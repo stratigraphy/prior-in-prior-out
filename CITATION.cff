@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper and this archive."
+title: "Prior in, prior out: R code of the re-analysis of 56 cyclostratigraphic estimates of Earth's precession constant"
+authors:
+  - family-names: Arts
+    given-names: Michiel
+    affiliation: "SediClim, Department of Geology, University of Liège, Belgium"
+license: GPL-3.0
+repository-code: "https://github.com/stratigraphy/prior-in-prior-out"
+keywords:
+  - cyclostratigraphy
+  - precession constant
+  - Earth-Moon distance
+  - TimeOptBMCMC
+  - Bayesian prior
