@@ -1,15 +1,15 @@
 # Prior in, prior out: the complete analysis of the 56 published estimates of the precession constant k ####
 # This one script makes every run, number, table and figure of the paper, in this order:
 #   Part 1. The prior test: TimeOptBMCMC (R package astrochron) ten times for each of the 56 estimates, 560 runs: nine
-#           runs with the prior mean of k at -2 to +2 SD from the TimeOptB (Farhat et al., 2022) value in steps of
+#           runs with the prior mean of k at -2 to +2 SD from the TimeOptB (Farhat et al., 2022a) value in steps of
 #           0.5 SD, and one run with that value and a five times wider SD (the wide run).
 #   Part 2. The readings: the 560 runs combined into the posterior of every run and the reading of every estimate,
 #           with the geological floor.
 #   Part 3. Table 1 and Table S1 as printed.
 #   Part 4. The curve of k against age, with modBchron() of the R package WaverideR.
 #   Part 5. The authors' own methods (TimeOptMCMC, or TimeOptBMCMC for the Hakatai Shale) with their own prior of k,
-#           and with that prior shifted by -2 and +2 SD: 66 runs for the 22 estimates not published with TimeOptB,
-#           and Table S2.
+#           and with that prior shifted by -2 and +2 SD: 65 runs for the 22 estimates not published with TimeOptB
+#           (Dales Gorge at -2 SD cannot start), and Table S2.
 #   Part 6. The synthetic test: 24 synthetic records with a known k, four TimeOptBMCMC runs each (96 runs), and
 #           Figure S2.
 #   Part 7. Figures 1 to 3, S1, S3 and S4.
@@ -30,7 +30,7 @@
 #                        of k, the shift, the prior mean and SD of k of this run, the seed, the number of samples and
 #                        the name of the output file.
 #   <record>.txt         the series of each record (depth in m, value), as prepared from the original study.
-#   AstroGeo22.txt       the Farhat et al. (2022) solution.
+#   AstroGeo22.txt       the Farhat et al. (2022a, 2022b) solution.
 # How to run:
 #   All runs are made on one core, one run after another, and every run is saved in output/saved_results/ as soon as
 #   it is finished. A run that is already saved is not run again, so the script can be stopped and
@@ -92,7 +92,7 @@ step_m <- 0.0731
 # Where the prior comes from:
 #   timeOptBMCMC() has no argument for the prior of k. Inside timeOptBMCMC(), the priors of all astronomical
 #   parameters (the secular frequencies g1-g5, s1-s6 and the precession constant k) are taken from a function inside
-#   the astrochron package, .getpriorpdfastropara(tGa, mvopt). It returns the TimeOptB prior (Farhat et al., 2022) at
+#   the astrochron package, .getpriorpdfastropara(tGa, mvopt). It returns the TimeOptB prior (Farhat et al., 2022a) at
 #   the age tGa (in billion years) as a list; the elements used here are:
 #     mu      the mean of each parameter;
 #     sigma   the standard deviation of each parameter;
@@ -721,7 +721,7 @@ table_runs <- final$runs
 # For a record read P or X: the runs, ordered by prior mean, are cut into segments where the median jumps by more
 # than 1.5 times the prior step and 1.5 times the smallest posterior SD; segments whose medians lie within 3
 # posterior SD of each other are merged. A segment counts when it holds at least three runs, its median lies within
-# 1.5 prior SD of the Farhat et al. (2022) value, and its median rises by less than 0.5 per unit of prior mean; of
+# 1.5 prior SD of the Farhat et al. (2022a) value, and its median rises by less than 0.5 per unit of prior mean; of
 # several, the one closest to the model value is used. The data then hold a solution at the model value, but nothing
 # in the inversion picks it.
 table1$model_k <- NA
@@ -904,7 +904,7 @@ print(t1, row.names = FALSE)
 #   k = k of the main solution of the runs; SD = the SD of that solution combined with a method term of 2% of k
 #   (analyses of the same record by different studies differ by 2-5%). A weak reading (D weak, and the two O
 #   readings) enters with twice that SD. Each estimate also gets an outlier part: a uniform distribution over its
-#   plausible range (present-day k to twice the Farhat et al. (2022) value at its age), which holds 10% of the weight
+#   plausible range (present-day k to twice the Farhat et al. (2022a) value at its age), which holds 10% of the weight
 #   of a strong estimate and 25% of a weak one, so that one estimate cannot force the curve.
 #   Fixed points: the present-day k (La2004/AstroGeo22) and the present rate from lunar laser ranging (Williams &
 #   Boggs, 2016), entered at 10 Ma. The formation of the Moon (4425 Ma) gives k of 2000 arcsec/yr or more; it enters
@@ -916,7 +916,7 @@ n_mc <- 20000
 n_copy <- 20
 position_top <- 5000
 
-# The Farhat et al. (2022) solution (AstroGeo22), for the plausible range of each estimate ####
+# The Farhat et al. (2022a, 2022b) solution (AstroGeo22), for the plausible range of each estimate ####
 astrogeo <- read.table(file.path(data_dir, "AstroGeo22.txt"), skip = 1)
 astrogeo_age_Ma <- 1000 * astrogeo[, 1]
 astrogeo_k <- astrogeo[, 11]
@@ -1000,7 +1000,7 @@ print(curve_all[curve_all$age_Ma %in% c(0, 350, 510, 1000, 1640, 2470), ], row.n
 curve_strong <- make_curve(inputs[inputs$strong, ], file.path(results_dir, "kcurve_strong"))
 print(curve_strong[curve_strong$age_Ma %in% c(0, 350, 510, 1000), ], row.names = FALSE)
 
-# Part 5: the 66 runs with the authors' own methods, one record after another, on one core ####
+# Part 5: the 65 runs with the authors' own methods (Dales Gorge at -2 SD cannot start), one record after another ####
 # 1 Dales Gorge Member (Zhou et al., 2022) ####
 run_authors_record("DalesGorgeZhou")
 
@@ -1124,14 +1124,14 @@ for (record in unique(authors_runs$record)) {
   }
   bmcmc_pull <- sprintf("%.2f", (highest$mean - lowest$mean) / (highest$prior_mean - lowest$prior_mean))
   t1 <- table1[table1$record == record, ]
-  s2 <- rbind(s2, data.frame(record = record, age_Ma = round(t1$age_Ma), method = lines$method[1],
-                             published = paste(sprintf("%.2f", t1$published_mean), pm,
-                                               sprintf("%.2f", t1$published_sd)),
-                             authors_post = authors_post, authors_pull = authors_pull, bmcmc_post = bmcmc_post,
-                             bmcmc_pull = bmcmc_pull))
+  s2 <- rbind(s2, data.frame(Record = name_of(record), Age_Ma = round(t1$age_Ma), Published_with = lines$method[1],
+                             Published_k = paste(sprintf("%.2f", t1$published_mean), pm,
+                                                 sprintf("%.2f", t1$published_sd)),
+                             Authors_method = authors_post, Authors_pull = authors_pull, TimeOptBMCMC = bmcmc_post,
+                             TimeOptBMCMC_pull = bmcmc_pull))
 }
 write.csv(s2, file.path(tables_dir, "Table_S2.csv"), row.names = FALSE, fileEncoding = "UTF-8")
-authors_pull <- suppressWarnings(as.numeric(s2$authors_pull))
+authors_pull <- suppressWarnings(as.numeric(s2$Authors_pull))
 cat("authors' methods: pull above 0.7 in", sum(authors_pull > 0.7, na.rm = TRUE), "of", sum(!is.na(authors_pull)),
     "records; median pull", round(median(authors_pull, na.rm = TRUE), 2), "\n")
 print(s2, row.names = FALSE)
@@ -1187,7 +1187,7 @@ for (device in c("png", "tiff")) {
   axis(1, at = seq_along(snr_values), labels = snr_values)
   abline(h = k_true, lty = 2)
   abline(h = k_now, lty = 4, col = "grey40")
-  legend("topleft", bty = "n", cex = 0.8, pch = c(16, 17, 16, NA, NA), lty = c(NA, NA, NA, 2, 4),
+  legend("bottomright", bty = "n", cex = 0.8, pch = c(16, 17, 16, NA, NA), lty = c(NA, NA, NA, 2, 4),
          col = c("black", "black", "#C0392B", "black", "grey40"),
          legend = c("25 m record", "14 m record", "Below present-day k", "True k", "Present-day k"))
   # (b) the pull
@@ -1287,7 +1287,7 @@ record_samples <- function(q) {
   list(runs = runs, wide = wide)
 }
 
-# The Farhat et al. (2022) solution (AstroGeo22) and the TimeOptB prior of k ####
+# The Farhat et al. (2022a, 2022b) solution (AstroGeo22) and the TimeOptB prior of k ####
 astrogeo <- read.table(file.path(data_dir, "AstroGeo22.txt"), skip = 1)
 names(astrogeo) <- c("T", "a", "amin", "amax", "lod", "lodmin", "lodmax", "obl", "oblmin", "oblmax", "pre", "premin",
                      "premax")
@@ -1351,7 +1351,7 @@ gts_bar <- function(ylo, yhi) {
   }
 }
 
-# Background of Figures 1 and S3: TimeOptB prior, Farhat et al. (2022) solution and present-day k ####
+# Background of Figures 1 and S3: TimeOptB prior, Farhat et al. (2022a) solution and present-day k ####
 time_background <- function() {
   axis(2, at = c(50, 55, 60, 70, 80, 90, 100, 110, 120), las = 1)
   polygon(tx(c(prior_age, rev(prior_age))), c(prior_mean - 2 * prior_sd, rev(prior_mean + 2 * prior_sd)),

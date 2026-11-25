@@ -38,7 +38,7 @@ The seven parts of the complete script:
 
 | Folder | Contents |
 |---|---|
-| `data/` | Inputs: `prior_test_runs.csv` (settings of the 560 runs), `authors_runs.csv` (settings of the 66 runs with the authors' methods), the 56 prepared series (`<record>.txt`: depth in m, value) and `AstroGeo22.txt` (Farhat et al., 2022). The complete script writes the synthetic records to `data/synthetic/`. |
+| `data/` | Inputs: `prior_test_runs.csv` (settings of the 560 runs), `authors_runs.csv` (settings of the 66 runs with the authors' methods, of which 65 can start), the 56 prepared series (`<record>.txt`: depth in m, value) and `AstroGeo22.txt` (Farhat et al., 2022b). The complete script writes the synthetic records to `data/synthetic/`. |
 | `output/figures/` | All figures, PNG and TIFF (300 dpi) |
 | `output/tables/` | All tables as printed (CSV) |
 | `output/saved_results/` | All results: the saved runs (`runs_prior_test/`, `runs_authors/`, `runs_synthetic/`), the readings, the curves of *k* against age and the Bchron models (RDS and CSV) |

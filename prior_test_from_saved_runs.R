@@ -6,7 +6,7 @@
 #   Part 3. Table 1 and Table S1 as printed.
 #   Part 4. The curve of k against age, with modBchron() of the R package WaverideR. This part is run again: it takes
 #           about 7 minutes per curve.
-#   Part 5. Table S2 from the 66 saved runs with the authors' own methods.
+#   Part 5. Table S2 from the 65 saved runs with the authors' own methods.
 #   Part 6. The synthetic test from the 96 saved runs, and Figure S2.
 #   Part 7. Figures 1 to 3, S1, S3 and S4.
 # The parts are numbered as in prior_test_complete_analysis.R; Part 1 there makes the 560 runs of the prior test.
@@ -14,11 +14,11 @@
 # RStudio, then source this script or run it part by part):
 #   data/                   inputs: prior_test_runs.csv and authors_runs.csv (one line per run: record, method,
 #                           prior mean and SD of k of the run and the name of its file) and AstroGeo22.txt (the
-#                           Farhat et al. (2022) solution)
+#                           Farhat et al. (2022a, 2022b) solution)
 #   output/figures/         all figures (PNG, 300 dpi)
 #   output/tables/          all tables as printed (CSV): Table 1, Table S1, Table S2 and the synthetic test
 #   output/saved_results/   all results. The saved runs are read from runs_prior_test/ (560 runs,
-#                           <record>_bmcmc_<shift>.rds), runs_authors/ (66 runs, <record>_authors_<shift>.rds; Dales
+#                           <record>_bmcmc_<shift>.rds), runs_authors/ (65 runs, <record>_authors_<shift>.rds; Dales
 #                           Gorge at -2 SD was not run: its prior mean minus 2 SD is below zero, where timeOptMCMC
 #                           stops) and runs_synthetic/ (96 runs, <record>_<shift>.rds). The readings, the curves of k
 #                           against age and the Bchron models are written here (RDS and CSV).
@@ -90,18 +90,36 @@ short_pt <- present_pt[sapply(present_pt, function(f) length(readRDS(file.path(r
 if (length(short_pt) > 0) {
   warning(length(short_pt), " saved prior-test runs do not have 50,000 samples: ", paste(short_pt, collapse = ", "))
 }
-missing <- authors_runs$output_file[!file.exists(file.path(authors_dir, authors_runs$output_file))]
-cat(length(missing), "of", nrow(authors_runs), "runs with the authors' methods missing in", authors_dir, ":",
-    missing, "\n")
+expected_authors <- authors_runs[!(authors_runs$method == "TimeOptMCMC" &
+                                     authors_runs$prior_mean - 2 * authors_runs$prior_sd <= 0), ]
+missing <- expected_authors$output_file[!file.exists(file.path(authors_dir, expected_authors$output_file))]
+cat(length(missing), "of", nrow(expected_authors), "runs with the authors' methods missing in", authors_dir,
+    if (length(missing) > 0) paste(":", paste(missing, collapse = ", ")) else "", "\n")
+present_au <- expected_authors[file.exists(file.path(authors_dir, expected_authors$output_file)), ]
+short_au <- present_au$output_file[sapply(seq_len(nrow(present_au)), function(j) {
+  length(readRDS(file.path(authors_dir, present_au$output_file[j]))$k) != present_au$n_samples[j]
+})]
+if (length(short_au) > 0) {
+  warning(length(short_au), " saved authors'-method runs do not have the expected sample count: ",
+          paste(short_au, collapse = ", "))
+}
 n_missing <- 0
+short_syn <- character(0)
 for (r in synthetic_records$record) {
   for (shift in c("-2", "0", "2", "w")) {
-    if (!file.exists(file.path(synthetic_dir, paste0(r, "_", shift, ".rds")))) {
+    f_syn <- file.path(synthetic_dir, paste0(r, "_", shift, ".rds"))
+    if (!file.exists(f_syn)) {
       n_missing <- n_missing + 1
+    } else if (length(readRDS(f_syn)$k) != 50000) {
+      short_syn <- c(short_syn, basename(f_syn))
     }
   }
 }
 cat(n_missing, "of", 4 * nrow(synthetic_records), "runs of the synthetic test missing in", synthetic_dir, "\n")
+if (length(short_syn) > 0) {
+  warning(length(short_syn), " saved synthetic-test runs do not have 50,000 samples: ",
+          paste(short_syn, collapse = ", "))
+}
 
 # Part 2: the readings: combine the 560 runs into the posterior of every run and the reading of every estimate ####
 # Nothing is reweighted or interpolated: every number is a statistic of the samples of one run.
@@ -286,7 +304,7 @@ table_runs <- final$runs
 # For a record read P or X: the runs, ordered by prior mean, are cut into segments where the median jumps by more
 # than 1.5 times the prior step and 1.5 times the smallest posterior SD; segments whose medians lie within 3
 # posterior SD of each other are merged. A segment counts when it holds at least three runs, its median lies within
-# 1.5 prior SD of the Farhat et al. (2022) value, and its median rises by less than 0.5 per unit of prior mean; of
+# 1.5 prior SD of the Farhat et al. (2022a) value, and its median rises by less than 0.5 per unit of prior mean; of
 # several, the one closest to the model value is used. The data then hold a solution at the model value, but nothing
 # in the inversion picks it.
 table1$model_k <- NA
@@ -469,7 +487,7 @@ print(t1, row.names = FALSE)
 #   k = k of the main solution of the runs; SD = the SD of that solution combined with a method term of 2% of k
 #   (analyses of the same record by different studies differ by 2-5%). A weak reading (D weak, and the two O
 #   readings) enters with twice that SD. Each estimate also gets an outlier part: a uniform distribution over its
-#   plausible range (present-day k to twice the Farhat et al. (2022) value at its age), which holds 10% of the weight
+#   plausible range (present-day k to twice the Farhat et al. (2022a) value at its age), which holds 10% of the weight
 #   of a strong estimate and 25% of a weak one, so that one estimate cannot force the curve.
 #   Fixed points: the present-day k (La2004/AstroGeo22) and the present rate from lunar laser ranging (Williams &
 #   Boggs, 2016), entered at 10 Ma. The formation of the Moon (4425 Ma) gives k of 2000 arcsec/yr or more; it enters
@@ -481,7 +499,7 @@ n_mc <- 20000
 n_copy <- 20
 position_top <- 5000
 
-# The Farhat et al. (2022) solution (AstroGeo22), for the plausible range of each estimate ####
+# The Farhat et al. (2022a, 2022b) solution (AstroGeo22), for the plausible range of each estimate ####
 astrogeo <- read.table(file.path(data_dir, "AstroGeo22.txt"), skip = 1)
 astrogeo_age_Ma <- 1000 * astrogeo[, 1]
 astrogeo_k <- astrogeo[, 11]
@@ -622,14 +640,14 @@ for (record in unique(authors_runs$record)) {
   }
   bmcmc_pull <- sprintf("%.2f", (highest$mean - lowest$mean) / (highest$prior_mean - lowest$prior_mean))
   t1 <- table1[table1$record == record, ]
-  s2 <- rbind(s2, data.frame(record = record, age_Ma = round(t1$age_Ma), method = lines$method[1],
-                             published = paste(sprintf("%.2f", t1$published_mean), pm,
-                                               sprintf("%.2f", t1$published_sd)),
-                             authors_post = authors_post, authors_pull = authors_pull, bmcmc_post = bmcmc_post,
-                             bmcmc_pull = bmcmc_pull))
+  s2 <- rbind(s2, data.frame(Record = name_of(record), Age_Ma = round(t1$age_Ma), Published_with = lines$method[1],
+                             Published_k = paste(sprintf("%.2f", t1$published_mean), pm,
+                                                 sprintf("%.2f", t1$published_sd)),
+                             Authors_method = authors_post, Authors_pull = authors_pull, TimeOptBMCMC = bmcmc_post,
+                             TimeOptBMCMC_pull = bmcmc_pull))
 }
 write.csv(s2, file.path(tables_dir, "Table_S2.csv"), row.names = FALSE, fileEncoding = "UTF-8")
-authors_pull <- suppressWarnings(as.numeric(s2$authors_pull))
+authors_pull <- suppressWarnings(as.numeric(s2$Authors_pull))
 cat("authors' methods: pull above 0.7 in", sum(authors_pull > 0.7, na.rm = TRUE), "of", sum(!is.na(authors_pull)),
     "records; median pull", round(median(authors_pull, na.rm = TRUE), 2), "\n")
 print(s2, row.names = FALSE)
@@ -680,7 +698,7 @@ for (device in c("png", "tiff")) {
   axis(1, at = seq_along(snr_values), labels = snr_values)
   abline(h = k_true, lty = 2)
   abline(h = k_now, lty = 4, col = "grey40")
-  legend("topleft", bty = "n", cex = 0.8, pch = c(16, 17, 16, NA, NA), lty = c(NA, NA, NA, 2, 4),
+  legend("bottomright", bty = "n", cex = 0.8, pch = c(16, 17, 16, NA, NA), lty = c(NA, NA, NA, 2, 4),
          col = c("black", "black", "#C0392B", "black", "grey40"),
          legend = c("25 m record", "14 m record", "Below present-day k", "True k", "Present-day k"))
   # (b) the pull
@@ -780,7 +798,7 @@ record_samples <- function(q) {
   list(runs = runs, wide = wide)
 }
 
-# The Farhat et al. (2022) solution (AstroGeo22) and the TimeOptB prior of k ####
+# The Farhat et al. (2022a, 2022b) solution (AstroGeo22) and the TimeOptB prior of k ####
 astrogeo <- read.table(file.path(data_dir, "AstroGeo22.txt"), skip = 1)
 names(astrogeo) <- c("T", "a", "amin", "amax", "lod", "lodmin", "lodmax", "obl", "oblmin", "oblmax", "pre", "premin",
                      "premax")
@@ -844,7 +862,7 @@ gts_bar <- function(ylo, yhi) {
   }
 }
 
-# Background of Figures 1 and S3: TimeOptB prior, Farhat et al. (2022) solution and present-day k ####
+# Background of Figures 1 and S3: TimeOptB prior, Farhat et al. (2022a) solution and present-day k ####
 time_background <- function() {
   axis(2, at = c(50, 55, 60, 70, 80, 90, 100, 110, 120), las = 1)
   polygon(tx(c(prior_age, rev(prior_age))), c(prior_mean - 2 * prior_sd, rev(prior_mean + 2 * prior_sd)),
